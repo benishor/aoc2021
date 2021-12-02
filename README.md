@@ -1,4 +1,4 @@
-Retroactive problem solving for AdventOfCode 2021.
+Solving AdventOfCode 2021 challenges.
 =
 
 Install
