@@ -4,25 +4,29 @@ class day2 : public aoc::solution {
 protected:
     void run(std::istream& in, std::ostream& out) override {
 
-        int horiz{0}, depth1{0}, depth2{0}, aim{0};
+        int horiz{0}, depth{0}, aim{0};
+
         for (std::string line; std::getline(in, line);) {
-            if (line.rfind("forward", 0) == 0) {
-                int amount = std::stoi(line.substr(8));
-                horiz += amount;
-                depth2 += aim * amount;
-            } else if (line.rfind("up", 0) == 0) {
-                int amount = std::stoi(line.substr(3));
-                depth1 -= amount;
-                aim -= amount;
-            } else {
-                // down
-                int amount = std::stoi(line.substr(5));
-                depth1 += amount;
-                aim += amount;
+            switch (line[0]) {
+                case 'f': {
+                    int x = std::stoi(line.substr(8));
+                    horiz += x;
+                    depth += aim * x;
+                    break;
+                }
+                case 'u':
+                    aim -= std::stoi(line.substr(3));
+                    break;
+                case 'd':
+                    aim += std::stoi(line.substr(5));
+                    break;
+                default:
+                    std::cerr << "Illegal input in line [" << line << "]";
+                    break;
             }
         }
-        std::cout << (horiz * depth1) << std::endl;
-        std::cout << (horiz * depth2) << std::endl;
+        std::cout << (horiz * aim) << std::endl;
+        std::cout << (horiz * depth) << std::endl;
     }
 };
 
