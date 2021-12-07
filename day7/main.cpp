@@ -4,11 +4,13 @@ class day7 : public aoc::solution {
 protected:
 
     void run(std::istream& in, std::ostream& out) override {
+
         auto numbers = aoc::csv_elements_from_stream<uint16_t>(in);
         std::sort(std::begin(numbers), std::end(numbers));
 
         uint64_t min_fuel_1 = std::numeric_limits<uint64_t>::max();
         uint64_t min_fuel_2 = std::numeric_limits<uint64_t>::max();
+
         for (auto i = numbers.front(); i <= numbers.back(); i++) {
             auto cost_1 = calculate_fuel_cost_1(numbers, i);
             auto cost_2 = calculate_fuel_cost_2(numbers, i);
@@ -19,6 +21,7 @@ protected:
                 min_fuel_2 = cost_2;
             }
         }
+        
         out << min_fuel_1 << std::endl;
         out << min_fuel_2 << std::endl;
     }
