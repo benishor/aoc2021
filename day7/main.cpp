@@ -7,26 +7,23 @@ protected:
         auto numbers = aoc::csv_elements_from_stream<uint16_t>(in);
         std::sort(std::begin(numbers), std::end(numbers));
 
-        uint64_t min_fuel = std::numeric_limits<uint64_t>::max();
+        uint64_t min_fuel_1 = std::numeric_limits<uint64_t>::max();
+        uint64_t min_fuel_2 = std::numeric_limits<uint64_t>::max();
         for (auto i = numbers.front(); i <= numbers.back(); i++) {
-            auto cost = calculate_fuel_cost(numbers, i);
-            if (cost < min_fuel) {
-                min_fuel = cost;
+            auto cost_1 = calculate_fuel_cost_1(numbers, i);
+            auto cost_2 = calculate_fuel_cost_2(numbers, i);
+            if (cost_1 < min_fuel_1) {
+                min_fuel_1 = cost_1;
+            }
+            if (cost_2 < min_fuel_2) {
+                min_fuel_2 = cost_2;
             }
         }
-        out << min_fuel << std::endl;
-
-        min_fuel = std::numeric_limits<uint64_t>::max();
-        for (auto i = numbers.front(); i <= numbers.back(); i++) {
-            auto cost = calculate_fuel_cost2(numbers, i);
-            if (cost < min_fuel) {
-                min_fuel = cost;
-            }
-        }
-        out << min_fuel << std::endl;
+        out << min_fuel_1 << std::endl;
+        out << min_fuel_2 << std::endl;
     }
 
-    static uint64_t calculate_fuel_cost(const std::vector<uint16_t>& numbers, uint16_t median) {
+    static uint64_t calculate_fuel_cost_1(const std::vector<uint16_t>& numbers, uint16_t median) {
         uint64_t result{0};
         for (auto& x: numbers) {
             result += abs(x - median);
@@ -34,7 +31,7 @@ protected:
         return result;
     }
 
-    static uint64_t calculate_fuel_cost2(const std::vector<uint16_t>& numbers, uint16_t median) {
+    static uint64_t calculate_fuel_cost_2(const std::vector<uint16_t>& numbers, uint16_t median) {
         uint64_t result{0};
         for (auto& x: numbers) {
             auto n = abs(x - median);
