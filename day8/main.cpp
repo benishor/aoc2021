@@ -1,20 +1,6 @@
 #include "solution.h"
 
-// 0b0gfedcba
-uint8_t digitToPattern[10] = {
-        0b01110111,// 0 => abcefg
-        0b00100100,// 1 => cf
-        0b01011101,// 2 => acdeg
-        0b01101101,// 3 => acdfg
-        0b00101110,// 4 => bcdf
-        0b01101011,// 5 => abdfg
-        0b01111011,// 6 => abdefg
-        0b00100101,// 7 => acf
-        0b01111111,// 8 => abcdefg
-        0b01101111,// 9 => abcdfg
-};
-
-std::map<uint8_t, uint8_t> pattern_to_digit = {
+static std::map<uint8_t, uint8_t> pattern_to_digit = {
         {0b01110111, 0},
         {0b00100100, 1},
         {0b01011101, 2},
@@ -27,50 +13,8 @@ std::map<uint8_t, uint8_t> pattern_to_digit = {
         {0b01101111, 9}
 };
 
-
-uint8_t decode_digit(const std::string& pattern, std::unordered_map<char, char>& inverse_translation_map) {
-    uint8_t numeric_pattern{0};
-    for (auto& c: pattern) {
-        numeric_pattern |= (uint8_t) pow(2, (inverse_translation_map[c] - 'a'));
-    }
-    return pattern_to_digit[numeric_pattern];
-}
-
 class day8 : public aoc::solution {
 protected:
-
-
-    std::set<uint8_t> difference(const std::set<uint8_t>& a, const std::set<uint8_t>& b) {
-        std::set<uint8_t> c;
-        if (a.empty() || b.empty()) return c;
-        for (auto& x: a) {
-            if (!b.count(x)) {
-                c.insert(x);
-            }
-        }
-        return c;
-    }
-
-    std::string difference(const std::string& s, char c) {
-        std::string result{};
-        for (auto& x: s) {
-            if (x != c) {
-                result += x;
-            }
-        }
-        return result;
-    }
-
-    std::string difference(const std::string& s, const std::string& c) {
-        std::string result{};
-        for (auto& x: s) {
-            if (c.find(x) == std::string::npos) {
-                result += x;
-            }
-        }
-        return result;
-    }
-
 
     void run(std::istream& in, std::ostream& out) override {
 
@@ -81,41 +25,44 @@ protected:
             auto pieces = aoc::split_string(line, "|");
             auto l2 = aoc::trim(pieces[1]);
 
-            std::set<uint8_t> segment_candidates[7];
-            for (size_t i = 0; i < 7; i++) {
-                segment_candidates[i] = {0, 1, 2, 3, 4, 5, 6};
-            }
-
             auto patterns = aoc::split_string(aoc::trim(pieces[0]), " ");
             std::sort(std::begin(patterns), std::end(patterns), [](const std::string& a, const std::string& b) -> bool {
                 return a.size() < b.size();
             });
 
-            std::map<char, uint8_t> segment_frequencies;
-            for (auto& p: patterns) {
-                for (auto& c: p) {
-                    segment_frequencies[c]++;
+            uint8_t binary_patterns[10];
+            uint8_t binary_segment_frequencies[7] = {0, 0, 0, 0, 0, 0, 0};
+            for (size_t i = 0; i < 10; i++) {
+                auto binary_pattern = pattern_to_binary(patterns[i]);
+                binary_patterns[i] = binary_pattern;
+
+                uint8_t mask = 1;
+                for (size_t j = 0; j < 7; j++, mask <<= 1) {
+                    if ((binary_pattern & mask) == mask) {
+                        binary_segment_frequencies[j]++;
+                    }
                 }
             }
-            std::unordered_map<uint8_t, std::set<char>> frequency_to_segments;
-            for (auto& kv: segment_frequencies) {
-                frequency_to_segments[kv.second].insert(kv.first);
+
+            uint8_t binary_frequency_to_segments[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            for (size_t i = 0; i < 7; i++) {
+                binary_frequency_to_segments[binary_segment_frequencies[i]] |= 1 << i;
             }
 
-            std::map<char, char> translation_map;
-            translation_map['e'] = *frequency_to_segments[4].begin();
-            translation_map['b'] = *frequency_to_segments[6].begin();
-            translation_map['f'] = *frequency_to_segments[9].begin();
-            translation_map['c'] = difference(patterns[0], translation_map['f']).front();
-            translation_map['d'] = difference(difference(patterns[2], patterns[0]), translation_map['b']).front();
-            translation_map['a'] = difference(patterns[1], patterns[0]).front();
-            translation_map['b'] = difference(difference(patterns[2], patterns[0]), translation_map['d']).front();
-            translation_map['g'] = difference(difference(difference(*patterns.rbegin(), patterns[1]), patterns[2]),
-                                              translation_map['e']).front();
+            uint8_t binary_translation_map[7] = {0, 0, 0, 0, 0, 0, 0};
+            binary_translation_map[4] = binary_frequency_to_segments[4]; // e
+            binary_translation_map[1] = binary_frequency_to_segments[6]; // b
+            binary_translation_map[5] = binary_frequency_to_segments[9]; // f
+            binary_translation_map[2] = binary_patterns[0] & ~binary_translation_map[5]; // c
+            binary_translation_map[3] = (binary_patterns[2] & ~binary_patterns[0]) & ~binary_translation_map[1]; // d
+            binary_translation_map[0] = binary_patterns[1] & ~binary_patterns[0]; // a
+            binary_translation_map[6] = 0b01111111 & ~(binary_translation_map[0] | binary_translation_map[1] |
+                                                       binary_translation_map[2] | binary_translation_map[3] |
+                                                       binary_translation_map[4] | binary_translation_map[5]); // g
 
-            std::unordered_map<char, char> inverse_translation_map;
-            for (auto& kv: translation_map) {
-                inverse_translation_map[kv.second] = kv.first;
+            uint8_t inverse_translation_map[7];
+            for (size_t i = 0; i < 7; i++) {
+                inverse_translation_map[(uint8_t) log2(binary_translation_map[i])] = i;
             }
 
             auto digits = aoc::split_string(l2, " ");
@@ -134,6 +81,22 @@ protected:
         }
         out << part1 << std::endl;
         out << part2 << std::endl;
+    }
+
+    static uint8_t pattern_to_binary(const std::string& pattern) {
+        uint8_t result{0};
+        for (auto& c: pattern) {
+            result |= 1 << (uint8_t) (c - 'a');
+        }
+        return result;
+    }
+
+    static uint8_t decode_digit(const std::string& pattern, const uint8_t *inverse_translation_map) {
+        uint8_t numeric_pattern{0};
+        for (auto& c: pattern) {
+            numeric_pattern |= 1 << inverse_translation_map[c - 'a'];
+        }
+        return pattern_to_digit[numeric_pattern];
     }
 };
 
