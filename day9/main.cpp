@@ -41,7 +41,7 @@ protected:
         return heightmap;
     }
 
-    static bool is_local_minimum(std::array<std::array<uint8_t, 100>, 100>& heightmap, size_t x, size_t y) {
+    static bool is_local_minimum(const std::array<std::array<uint8_t, 100>, 100>& heightmap, size_t x, size_t y) {
         auto val = heightmap[y][x];
         if (y > 0 && heightmap[y - 1][x] <= val) return false;
         if (y < 99 && heightmap[y + 1][x] <= val) return false;
@@ -68,7 +68,7 @@ protected:
         }
     }
 
-    static uint64_t count_flagged(std::array<std::array<uint8_t, 100>, 100>& heightmap) {
+    static uint64_t count_flagged(const std::array<std::array<uint8_t, 100>, 100>& heightmap) {
         uint64_t result{0};
         for (size_t y = 0; y < 100; y++) {
             for (size_t x = 0; x < 100; x++) {
