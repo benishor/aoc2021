@@ -30,14 +30,13 @@ protected:
 
     static std::array<std::array<uint8_t, 100>, 100> parse_data(std::istream& in) {
         std::array<std::array<uint8_t, 100>, 100> heightmap{};
-        size_t l{0};
+        size_t y{0};
         for (std::string line; std::getline(in, line);) {
-            size_t i{0};
+            size_t x{0};
             for (auto& c: line) {
-                heightmap[l][i] = c - '0';
-                i++;
+                heightmap[y][x++] = c - '0';
             }
-            l++;
+            y++;
         }
         return heightmap;
     }
@@ -62,18 +61,10 @@ protected:
     static void flood_fill_basin(std::array<std::array<uint8_t, 100>, 100>& heightmap, size_t x, size_t y) {
         if (heightmap[y][x] < 9) {
             heightmap[y][x] |= 0x80;
-            if (x > 0) {
-                flood_fill_basin(heightmap, x - 1, y);
-            }
-            if (x < 99) {
-                flood_fill_basin(heightmap, x + 1, y);
-            }
-            if (y > 0) {
-                flood_fill_basin(heightmap, x, y - 1);
-            }
-            if (y < 99) {
-                flood_fill_basin(heightmap, x, y + 1);
-            }
+            if (x > 0) flood_fill_basin(heightmap, x - 1, y);
+            if (x < 99) flood_fill_basin(heightmap, x + 1, y);
+            if (y > 0) flood_fill_basin(heightmap, x, y - 1);
+            if (y < 99) flood_fill_basin(heightmap, x, y + 1);
         }
     }
 
@@ -81,9 +72,8 @@ protected:
         uint64_t result{0};
         for (size_t y = 0; y < 100; y++) {
             for (size_t x = 0; x < 100; x++) {
-                if ((heightmap[y][x] & 0x80) == 0x80) {
+                if ((heightmap[y][x] & 0x80) == 0x80)
                     result++;
-                }
             }
         }
         return result;
