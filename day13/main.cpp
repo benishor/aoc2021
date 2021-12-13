@@ -83,7 +83,8 @@ protected:
     static void print_points(const std::set<point>& transformed_points, std::ostream& out) {
         point max_bounds{0, 0};
         for (auto& p: transformed_points) {
-            max_bounds = std::max(max_bounds, p);
+            max_bounds.x = std::max(max_bounds.x, p.x);
+            max_bounds.y = std::max(max_bounds.y, p.y);
         }
 
         const int width = max_bounds.x + 1;
