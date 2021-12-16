@@ -4,59 +4,16 @@ struct line {
     uint16_t x1, y1;
     uint16_t x2, y2;
 
-    [[nodiscard]] bool is_vertical() const {
-        return x1 == x2;
-    }
-
-    [[nodiscard]] bool is_horizontal() const {
-        return y1 == y2;
-    }
-
-    [[nodiscard]] bool is_diagonal() const {
-        return x1 != x2 && y1 != y2;
-    }
+    [[nodiscard]] bool is_vertical() const;
+    [[nodiscard]] bool is_horizontal() const;
+    [[nodiscard]] bool is_diagonal() const;
 };
 
 struct canvas {
+    void draw(const line& l);
+    uint32_t count_overlaps(uint8_t threshold);
+
     std::array<std::array<uint8_t, 1000>, 1000> buffer{};
-
-    void draw(const line& l) {
-        if (l.is_horizontal()) {
-            auto start = l.x1 <= l.x2 ? l.x1 : l.x2;
-            auto end = l.x1 <= l.x2 ? l.x2 : l.x1;
-            for (int x = start; x <= end; x++) {
-                buffer[l.y1][x]++;
-            }
-        } else if (l.is_vertical()) {
-            auto start = l.y1 <= l.y2 ? l.y1 : l.y2;
-            auto end = l.y1 <= l.y2 ? l.y2 : l.y1;
-
-            for (int y = start; y <= end; y++) {
-                buffer[y][l.x1]++;
-            }
-        } else {
-            int dx = (l.x2 - l.x1) > 0 ? 1 : -1;
-            int dy = (l.y2 - l.y1) > 0 ? 1 : -1;
-            auto x = l.x1;
-            auto y = l.y1;
-            for (;; x += dx, y += dy) {
-                buffer[y][x]++;
-                if (x == l.x2 && y == l.y2) break;
-            }
-        }
-    }
-
-    uint32_t count_overlaps(uint8_t threshold) {
-        uint32_t result{0};
-        for (size_t y = 0; y < 1000; y++) {
-            for (size_t x = 0; x < 1000; x++) {
-                if (buffer[y][x] >= threshold) {
-                    result++;
-                }
-            }
-        }
-        return result;
-    }
 };
 
 class day5 : public aoc::solution {
@@ -93,6 +50,50 @@ protected:
         return result;
     }
 };
+
+bool line::is_vertical() const { return x1 == x2; }
+
+bool line::is_horizontal() const { return y1 == y2; }
+
+bool line::is_diagonal() const { return x1 != x2 && y1 != y2; }
+
+void canvas::draw(const line& l) {
+    if (l.is_horizontal()) {
+        auto start = l.x1 <= l.x2 ? l.x1 : l.x2;
+        auto end = l.x1 <= l.x2 ? l.x2 : l.x1;
+        for (int x = start; x <= end; x++) {
+            buffer[l.y1][x]++;
+        }
+    } else if (l.is_vertical()) {
+        auto start = l.y1 <= l.y2 ? l.y1 : l.y2;
+        auto end = l.y1 <= l.y2 ? l.y2 : l.y1;
+
+        for (int y = start; y <= end; y++) {
+            buffer[y][l.x1]++;
+        }
+    } else {
+        int dx = (l.x2 - l.x1) > 0 ? 1 : -1;
+        int dy = (l.y2 - l.y1) > 0 ? 1 : -1;
+        auto x = l.x1;
+        auto y = l.y1;
+        for (;; x += dx, y += dy) {
+            buffer[y][x]++;
+            if (x == l.x2 && y == l.y2) break;
+        }
+    }
+}
+
+uint32_t canvas::count_overlaps(uint8_t threshold) {
+    uint32_t result{0};
+    for (size_t y = 0; y < 1000; y++) {
+        for (size_t x = 0; x < 1000; x++) {
+            if (buffer[y][x] >= threshold) {
+                result++;
+            }
+        }
+    }
+    return result;
+}
 
 int main(int argc, char **argv) {
     day5 solution{};
